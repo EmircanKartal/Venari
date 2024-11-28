@@ -1,0 +1,20 @@
+/* src/App.css */
+
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  padding: 1rem;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 250px;
+  padding: 1rem;
+}

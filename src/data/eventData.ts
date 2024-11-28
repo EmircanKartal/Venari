@@ -1,0 +1,77 @@
+// src/data/eventData.ts
+const eventData = [
+    {
+      id: 1,
+      title: "Aspendos Opera and Ballet Festival",
+      lat: 36.9391,
+      lng: 30.6848,
+      imageSrc: "https://artdogistanbul.com/wp-content/uploads/2024/09/opera-bale-festival.webp",
+      date: "14 April 2023",
+    },
+    {
+      id: 2,
+      title: "Cappadocia Hot Air Balloon Festival",
+      lat: 38.6431,
+      lng: 34.8331,
+      imageSrc: "https://cdn.prod.website-files.com/650827a5d8ab2afe46d870f7/66a25f057fde981e1d1257c6_iStock-1484200613.jpg",
+      date: "20 May 2023",
+    },
+    {
+      id: 3,
+      title: "Istanbul Film Festival",
+      lat: 41.0082,
+      lng: 28.9784,
+      imageSrc: "https://www.marketingturkiye.com.tr/wp-content/uploads/2024/04/istanbul-film-festivali.jpg.webp",
+      date: "10 June 2023",
+    },
+    {
+      id: 4,
+      title: "Izmir International Fair",
+      lat: 38.4237,
+      lng: 27.1428,
+      imageSrc: "https://habereksprescomtr.teimg.com/haberekspres-com-tr/uploads/2024/08/ief-1-2.jpg",
+      date: "15 July 2023",
+    },
+    {
+      id: 5,
+      title: "Pamukkale Music and Art Festival",
+      lat: 37.923,
+      lng: 29.1187,
+      imageSrc: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/23/2d/14/8d/caption.jpg?w=1200&h=-1&s=1",
+      date: "5 August 2023",
+    },
+    {
+        id: 6,
+        title: "Varna Summer International Music Festival",
+        lat: 43.2141,
+        lng: 27.9147,
+        imageSrc: "https://i0.wp.com/madamebulgaria.com/wp-content/uploads/2017/07/Jazz.jpg?fit=1081%2C600&ssl=1",
+        date: "25 June 2023",
+      },
+      {
+        id: 7,
+        title: "Sofia International Film Festival",
+        lat: 42.6977,
+        lng: 23.3219,
+        imageSrc: "https://uniqabg.blob.core.windows.net/prod-public/files/News/Sofia%20Film%20Fest%20and%20UNIQA.jpg",
+        date: "10 September 2023",
+      },
+      {
+        id: 8,
+        title: "Athens Epidaurus Festival",
+        lat: 37.9838,
+        lng: 23.7275,
+        imageSrc: "https://live-athens.com/wp-content/uploads/2017/05/festival-athenes-epidaure-theatre-antique.jpg",
+        date: "1 July 2023",
+      },
+      {
+        id: 9,
+        title: "Balkan Music Festival",
+        lat: 42.0000,
+        lng: 21.4330,
+        imageSrc: "https://blog.airbaltic.com/wp-content/uploads/2024/06/the-10-best-music-festivals-in-the-balkans-and-caucasus-.jpg",
+        date: "12 August 2023",
+      },
+    ];
+  
+  export default eventData;
