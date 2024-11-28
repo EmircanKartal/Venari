@@ -113,13 +113,12 @@ app.post('/api/register', upload.single('profile_pic'), async (req, res) => {
 });
 
 
-
 // User Login
 app.post('/api/login', (req, res) => {
     console.log("Request body:", req.body);
 
-    const { username, password } = req.body;
-    console.log("Username:", username, "Password:", password);
+    const { username, password, dob } = req.body;
+    console.log("Username:", username, "Password:", password, "Dob:", dob);
 
     const query = `SELECT * FROM users WHERE username = ?`;
 
@@ -169,7 +168,48 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-
+app.post("/api/forgot-password", authenticateToken, (req, res) => {
+    const { newPassword } = req.body;
+    console.log("Received newPassword:", newPassword); // Debug
+    console.log("User ID:", req.user.id); // Debug
+    if (!newPassword) {
+      return res.status(400).json({ error: "New password is required" });
+    }
+  
+    const userId = req.user.id;
+    const query = "UPDATE users SET password = ? WHERE id = ?";
+    db.query(query, [newPassword, userId], (err) => {
+      if (err) {
+        console.error("Error updating password:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      res.status(200).json({ message: "Password updated successfully" });
+    });
+  });
+  
+  app.put("/api/update-user", authenticateToken, (req, res) => {
+    const userId = req.user.id;
+    const { username, email, location, interests, first_name, last_name, dob, gender, phone } = req.body;
+  
+    const query = `
+      UPDATE users
+      SET username = ?, email = ?, location = ?, interests = ?, first_name = ?, last_name = ?, dob = ?, gender = ?, phone = ?
+      WHERE id = ?
+    `;
+  
+    db.query(
+      query,
+      [username, email, location, interests, first_name, last_name, dob, gender, phone, userId],
+      (err, result) => {
+        if (err) {
+          console.error("Error updating user:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+        res.status(200).json({ message: "User updated successfully", updatedUser: req.body });
+      }
+    );
+  });
+  
 
 
 /**
