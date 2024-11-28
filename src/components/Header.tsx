@@ -1,21 +1,26 @@
-// src/components/Header.tsx
 import { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Import useNavigate for navigation
+import { useNavigate } from "react-router-dom";
 import { FiSearch, FiInbox } from "react-icons/fi";
 import { Button } from "@mui/material";
 import { CgClose } from "react-icons/cg";
 import { HiOutlinePlusSm } from "react-icons/hi";
+import { useUser } from "../context/UserContext";
 
 const Header = () => {
   const [searchText, setSearchText] = useState("");
-  const navigate = useNavigate(); // Initialize the useNavigate hook
+  const navigate = useNavigate();
+  const { user } = useUser();
 
   const handleClearSearch = () => {
     setSearchText("");
   };
 
   const handleProfileClick = () => {
-    navigate("/login");
+    if (user) {
+      navigate("/profile");
+    } else {
+      navigate("/login");
+    }
   };
 
   return (
@@ -48,7 +53,7 @@ const Header = () => {
             <HiOutlinePlusSm size={24} />
           </button>
           <img
-            src="https://i.pinimg.com/564x/bd/cc/de/bdccde33dea7c9e549b325635d2c432e.jpg"
+            src={user?.profile_pic || "https://via.placeholder.com/150"}
             alt="Profile"
             className="w-11 h-11 rounded-full object-cover border border-gray-300 hover:scale-105 transition cursor-pointer"
             onClick={handleProfileClick}

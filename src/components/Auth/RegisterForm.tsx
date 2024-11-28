@@ -1,7 +1,7 @@
 import React from "react";
 
 interface RegisterFormProps {
-  formData: Record<string, string>;
+  formData: Record<string, string | File>; // Allow `string | File` for profile_pic
   handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleSubmit: (e: React.FormEvent) => void;
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -27,7 +27,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="username"
             name="username"
-            value={formData.username}
+            value={formData.username as string}
             onChange={handleInputChange}
             required
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
@@ -44,7 +44,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="password"
             id="password"
             name="password"
-            value={formData.password}
+            value={formData.password as string}
             onChange={handleInputChange}
             required
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
@@ -63,7 +63,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="email"
             id="email"
             name="email"
-            value={formData.email}
+            value={formData.email as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -79,7 +79,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="location"
             name="location"
-            value={formData.location}
+            value={formData.location as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -97,7 +97,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="interests"
             name="interests"
-            value={formData.interests}
+            value={formData.interests as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -113,7 +113,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="first_name"
             name="first_name"
-            value={formData.first_name}
+            value={formData.first_name as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -131,7 +131,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="last_name"
             name="last_name"
-            value={formData.last_name}
+            value={formData.last_name as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -147,7 +147,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="date"
             id="dob"
             name="dob"
-            value={formData.dob}
+            value={formData.dob as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -165,7 +165,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="gender"
             name="gender"
-            value={formData.gender}
+            value={formData.gender as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />
@@ -181,7 +181,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({
             type="text"
             id="phone"
             name="phone"
-            value={formData.phone}
+            value={formData.phone as string}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded-lg w-full py-2 px-3 bg-blue-300"
           />

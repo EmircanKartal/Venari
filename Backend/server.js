@@ -50,7 +50,10 @@ const authenticateToken = (req, res, next) => {
     }
 };
 
-// Routes
+
+/**
+ * Endpoint about users table
+ */
 
 // User Registration with File Upload
 app.post('/api/register', upload.single('profile_pic'), async (req, res) => {
@@ -120,7 +123,7 @@ app.post('/api/login', (req, res) => {
 
     const query = `SELECT * FROM users WHERE username = ?`;
 
-    db.query(query, [username], (err, results) => {
+    db.query(query, [username], async (err, results) => {
         if (err) {
             console.error("Database error:", err);
             return res.status(500).json({ error: err.message });
@@ -138,12 +141,40 @@ app.post('/api/login', (req, res) => {
         }
 
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        console.log("Generated token:", token);
-        res.json({ token });
+
+        // Encode the BLOB as Base64
+        const profilePicBase64 = user.profile_pic
+            ? `data:image/jpeg;base64,${user.profile_pic.toString('base64')}`
+            : null;
+        
+        
+
+        // Send the user details along with the token
+        res.json({
+            token,
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                location: user.location,
+                interests: user.interests,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                dob: user.dob,
+                gender: user.gender,
+                phone: user.phone,
+                profile_pic: profilePicBase64,
+            },
+        });
     });
 });
 
-// Create Event
+
+
+
+/**
+ * Endpoint about events table
+ */
 app.post('/api/events', authenticateToken, (req, res) => {
     const { name, date, time, description, location, category } = req.body;
 

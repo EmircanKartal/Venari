@@ -3,22 +3,11 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import { useUser } from "../../context/UserContext";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState<{
-    username: string;
-    password: string;
-    email: string;
-    location: string;
-    interests: string;
-    first_name: string;
-    last_name: string;
-    dob: string;
-    gender: string;
-    phone: string;
-    profile_pic: string | File;
-  }>({
+  const [formData, setFormData] = useState({
     username: "",
     password: "",
     email: "",
@@ -33,6 +22,7 @@ const Login = () => {
   });
 
   const navigate = useNavigate();
+  const { setUser } = useUser();
 
   // Common input change handler
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,8 +58,24 @@ const Login = () => {
       );
 
       if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        navigate("/");
+        localStorage.setItem("token", response.data.token); // Store the token
+
+        // Set user info in context
+        setUser({
+          id: response.data.user.id,
+          username: response.data.user.username,
+          email: response.data.user.email,
+          location: response.data.user.location,
+          interests: response.data.user.interests,
+          first_name: response.data.user.first_name,
+          last_name: response.data.user.last_name,
+          dob: response.data.user.dob,
+          gender: response.data.user.gender,
+          phone: response.data.user.phone,
+          profile_pic: response.data.user.profile_pic,
+        });
+
+        navigate("/profile");
       } else {
         console.error("Token not received in response");
       }
@@ -102,7 +108,7 @@ const Login = () => {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        navigate("/");
+        navigate("/"); // Redirect to home
       } else {
         console.error("Token not received in response");
       }
