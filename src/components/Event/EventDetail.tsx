@@ -6,6 +6,7 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AccessAlarmsIcon from "@mui/icons-material/AccessAlarms";
 import ShareIcon from "@mui/icons-material/Share";
+import MapModal from "../Map/MapModal";
 
 interface Event {
   id: number;
@@ -15,7 +16,7 @@ interface Event {
   time: string;
   duration: string;
   category: string;
-  location: string;
+  location: string; // Coordinates as a string "lat,lng"
   image?: string;
 }
 
@@ -25,11 +26,18 @@ const EventDetail = () => {
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState<string>("");
 
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
+
+  const handleOpenMapModal = () => {
+    setIsMapModalOpen(true);
+  };
+
+  const handleCloseMapModal = () => {
+    setIsMapModalOpen(false);
+  };
+
   const formatDateTime = (date: string, time: string, duration: string) => {
     try {
-      console.log("Formatting Date:", date);
-      console.log("Formatting Time:", time);
-
       if (!date || !time) {
         throw new Error("Invalid date or time");
       }
@@ -141,6 +149,11 @@ const EventDetail = () => {
     return <div className="text-center mt-16">Event not found</div>;
   }
 
+  // Convert location string to LatLngLiteral
+  const locationCoordinates = event.location
+    ? event.location.split(",").map((coord) => parseFloat(coord))
+    : null;
+
   return (
     <div
       className="m-5 w-full h-[80.8vh] bg-cover bg-center flex items-center"
@@ -191,7 +204,7 @@ const EventDetail = () => {
               backgroundColor: "rgba(255, 255, 255, 0.45)",
               borderWidth: "0.0rem",
             }}
-            onClick={() => alert("Location button clicked")}
+            onClick={handleOpenMapModal}
           >
             <LocationOnIcon
               className="flex items-center justify-center"
@@ -206,6 +219,17 @@ const EventDetail = () => {
           </button>
         </div>
       </div>
+      {/* Map Modal */}
+      {event?.location && locationCoordinates && (
+        <MapModal
+          eventCoordinates={{
+            lat: locationCoordinates[0],
+            lng: locationCoordinates[1],
+          }}
+          open={isMapModalOpen}
+          onOpenChange={setIsMapModalOpen}
+        />
+      )}
     </div>
   );
 };
