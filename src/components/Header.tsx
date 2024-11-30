@@ -1,13 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiSearch, FiInbox } from "react-icons/fi";
 import { Button } from "@mui/material";
 import { CgClose } from "react-icons/cg";
 import { HiOutlinePlusSm } from "react-icons/hi";
 import { useUser } from "../context/UserContext";
+import AddEvent from "./Event/AddEvent";
 
 const Header = () => {
   const [searchText, setSearchText] = useState("");
+  const [isAddEventOpen, setIsAddEventOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useUser();
 
@@ -22,6 +24,10 @@ const Header = () => {
       navigate("/login");
     }
   };
+
+  const toggleAddEventModal = useCallback(() => {
+    setIsAddEventOpen((prev) => !prev);
+  }, []);
 
   return (
     <header className="flex items-center justify-center p-4 bg-white border-b border-gray-200">
@@ -49,7 +55,10 @@ const Header = () => {
           <button className="p-2 rounded-full bg-[#e6f6d9] text-[#4b8b3b] hover:scale-105 transition">
             <FiInbox size={24} />
           </button>
-          <button className="p-2 rounded-full bg-[#dff2ff] text-[#0b3d91] hover:bg-[#cce5ff] hover:text-[#083c76] hover:scale-105 transition">
+          <button
+            className="p-2 rounded-full bg-[#dff2ff] text-[#0b3d91] hover:bg-[#cce5ff] hover:text-[#083c76] hover:scale-105 transition"
+            onClick={toggleAddEventModal}
+          >
             <HiOutlinePlusSm size={24} />
           </button>
           <img
@@ -60,6 +69,7 @@ const Header = () => {
           />
         </div>
       </div>
+      <AddEvent open={isAddEventOpen} onClose={toggleAddEventModal} />
     </header>
   );
 };

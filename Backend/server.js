@@ -55,7 +55,9 @@ const authenticateToken = (req, res, next) => {
  * Endpoint about users table
  */
 
-// User Registration with File Upload
+/**
+ *  Yeni kullanıcı kayıt etmek için kullandığımız endpoint
+ */
 app.post('/api/register', upload.single('profile_pic'), async (req, res) => {
     const {
         username,
@@ -113,7 +115,9 @@ app.post('/api/register', upload.single('profile_pic'), async (req, res) => {
 });
 
 
-// User Login
+/**
+ *  Login için kullandığımız endpoint
+ */
 app.post('/api/login', (req, res) => {
     console.log("Request body:", req.body);
 
@@ -168,6 +172,9 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+/**
+ *  Parolamızı güncellemek için kullandığımız endpoint
+ */
 app.post("/api/forgot-password", authenticateToken, (req, res) => {
     const { newPassword } = req.body;
     console.log("Received newPassword:", newPassword); // Debug
@@ -213,32 +220,101 @@ app.post("/api/forgot-password", authenticateToken, (req, res) => {
 
 
 /**
- * Endpoint about events table
+ * Event eklemek için kullandığımız endpoint
  */
-app.post('/api/events', authenticateToken, (req, res) => {
-    const { name, date, time, description, location, category } = req.body;
+app.post('/api/add-events', upload.single('image'), (req, res) => {
+    const {
+        name,
+        description,
+        date,
+        time,
+        duration,
+        category,
+        lat,
+        lng,
+        created_by, 
+    } = req.body;
 
-    const query = `INSERT INTO events (name, date, time, description, location, category, created_by) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?)`;
+    console.log(req.body);
 
-    db.query(query, [name, date, time, description, location, category, req.user.id], (err) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-        } else {
-            res.status(201).json({ message: 'Event created successfully' });
+    // Store only latitude and longitude as a string
+    const location = `${lat}, ${lng}`;
+
+    // Handle image upload
+    const eventImageBuffer = req.file ? req.file.buffer : null;
+
+    const query = `
+        INSERT INTO events (name, description, date, time, duration, category, location, created_by, image)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+
+    db.query(
+        query,
+        [name, description, date, time, duration, category, location, created_by, eventImageBuffer],
+        (err) => {
+            if (err) {
+                console.error('Error inserting event:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            res.status(201).json({ message: 'Event added successfully' });
         }
+    );
+});
+
+/**
+ *  events için tüm etkinlerine bilgisini getiren endpoint
+ */
+app.get('/api/events', (req, res) => {
+    const { page = 1, limit = 12 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const query = `SELECT * FROM events LIMIT ? OFFSET ?`;
+
+    db.query(query, [parseInt(limit), parseInt(offset)], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+
+        // Encode images as Base64
+        const events = results.map(event => {
+            if (event.image) {
+                event.image = `data:image/jpeg;base64,${event.image.toString('base64')}`;
+            }
+            return event;
+        });
+
+        res.json(events);
+    });
+});
+/**
+ *  Seçilen etkinliğin id'sini alarak tüm bilgilerini getiren endpoint
+ */
+app.get('/api/events/:id', (req, res) => {
+    const { id } = req.params;
+
+    const query = `SELECT * FROM events WHERE id = ?`;
+
+    db.query(query, [id], (err, results) => {
+        if (err) {
+            return res.status(500).json({ error: err.message });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ error: "Event not found" });
+        }
+
+        const event = results[0];
+
+        // Encode image as Base64
+        if (event.image) {
+            event.image = `data:image/jpeg;base64,${event.image.toString('base64')}`;
+        }
+
+        res.json(event);
     });
 });
 
-// Get Events
-app.get('/api/events', authenticateToken, (req, res) => {
-    const query = `SELECT * FROM events`;
 
-    db.query(query, (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
-    });
-});
 
 // Chat Message
 app.post('/api/chats', authenticateToken, (req, res) => {

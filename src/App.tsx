@@ -8,6 +8,7 @@ import Admin from "./pages/Admin";
 import Navbar from "./components/Navbar";
 import Header from "./components/Header";
 import Login from "./components/Auth/Login";
+import EventDetail from "./components/Event/EventDetail";
 import { UserProvider } from "./context/UserContext";
 
 const App = () => {
@@ -22,6 +23,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/events" element={<Events />} />
+                <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />

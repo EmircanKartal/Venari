@@ -32,7 +32,7 @@ const UserProfile = () => {
         {user ? (
           <>
             {/* User Details */}
-            <div className="text-left bg-green-100 p-6 rounded-lg w-80">
+            <div className="text-left bg-green-100 p-6 ml-6 rounded-lg w-auto">
               <h2 className="text-2xl font-bold text-green-800 mb-4 text-center">
                 User Profile
               </h2>
@@ -95,7 +95,7 @@ const UserProfile = () => {
               <img
                 src={user.profile_pic || "https://via.placeholder.com/150"}
                 alt="Profile"
-                className="w-64 h-64 rounded-full object-cover border-4 border-green-300 shadow-md"
+                className="w-80 h-80 rounded-full object-cover border-4 border-green-300 shadow-md"
               />
             </div>
           </>
