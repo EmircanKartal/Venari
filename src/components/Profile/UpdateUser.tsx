@@ -19,6 +19,10 @@ const UpdateUserModal = ({ onClose }: { onClose: () => void }) => {
 
   useEffect(() => {
     if (user) {
+      // Format dob to yyyy-MM-dd if it's a valid date string
+      const formattedDob = user.dob
+        ? new Date(user.dob).toISOString().split("T")[0]
+        : "";
       setFormData({
         username: user.username || "",
         email: user.email || "",
@@ -26,7 +30,7 @@ const UpdateUserModal = ({ onClose }: { onClose: () => void }) => {
         interests: user.interests || "",
         first_name: user.first_name || "",
         last_name: user.last_name || "",
-        dob: user.dob || "",
+        dob: formattedDob,
         gender: user.gender || "",
         phone: user.phone || "",
       });
@@ -41,20 +45,18 @@ const UpdateUserModal = ({ onClose }: { onClose: () => void }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem("token");
+      if (!user) {
+        setError("User not found. Please log in.");
+        return;
+      }
       const response = await axios.put(
         "http://localhost:3307/api/update-user",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { ...formData, userId: user.id } // Include the user's ID in the request
       );
 
       if (response.status === 200) {
         alert("Profile updated successfully.");
-        setUser(response.data.updatedUser);
+        setUser(response.data.updatedUser); // Update user in context
         onClose();
       }
     } catch (error: any) {

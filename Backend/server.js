@@ -121,8 +121,7 @@ app.post('/api/register', upload.single('profile_pic'), async (req, res) => {
 app.post('/api/login', (req, res) => {
     console.log("Request body:", req.body);
 
-    const { username, password, dob } = req.body;
-    console.log("Username:", username, "Password:", password, "Dob:", dob);
+    const { username, password } = req.body;
 
     const query = `SELECT * FROM users WHERE username = ?`;
 
@@ -158,6 +157,7 @@ app.post('/api/login', (req, res) => {
             user: {
                 id: user.id,
                 username: user.username,
+                password: user.password,
                 email: user.email,
                 location: user.location,
                 interests: user.interests,
@@ -175,35 +175,59 @@ app.post('/api/login', (req, res) => {
 /**
  *  Parolamızı güncellemek için kullandığımız endpoint
  */
-app.post("/api/forgot-password", authenticateToken, (req, res) => {
-    const { newPassword } = req.body;
-    console.log("Received newPassword:", newPassword); // Debug
-    console.log("User ID:", req.user.id); // Debug
-    if (!newPassword) {
-      return res.status(400).json({ error: "New password is required" });
+app.post("/api/change-password", (req, res) => {
+    const { currentPassword, newPassword, userId } = req.body;
+  
+    if (!currentPassword || !newPassword || !userId) {
+      return res.status(400).json({ error: "All fields are required" });
     }
   
-    const userId = req.user.id;
-    const query = "UPDATE users SET password = ? WHERE id = ?";
-    db.query(query, [newPassword, userId], (err) => {
+    // First, verify the current password against the database
+    const query = "SELECT password FROM users WHERE id = ?";
+    db.query(query, [userId], (err, results) => {
       if (err) {
-        console.error("Error updating password:", err);
+        console.error("Error querying database:", err);
         return res.status(500).json({ error: "Database error" });
       }
-      res.status(200).json({ message: "Password updated successfully" });
+  
+      if (results.length === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
+  
+      const storedPassword = results[0].password;
+  
+      // Compare the provided current password with the stored password
+      if (currentPassword !== storedPassword) {
+        return res.status(401).json({ error: "Incorrect current password" });
+      }
+  
+      // Proceed to update the password if everything is valid
+      const updateQuery = "UPDATE users SET password = ? WHERE id = ?";
+      db.query(updateQuery, [newPassword, userId], (err) => {
+        if (err) {
+          console.error("Error updating password:", err);
+          return res.status(500).json({ error: "Error updating password" });
+        }
+  
+        return res.status(200).json({ message: "Password updated successfully" });
+      });
     });
   });
   
-  app.put("/api/update-user", authenticateToken, (req, res) => {
-    const userId = req.user.id;
-    const { username, email, location, interests, first_name, last_name, dob, gender, phone } = req.body;
+  
+  app.put("/api/update-user", (req, res) => {
+    const { username, email, location, interests, first_name, last_name, dob, gender, phone, userId } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
   
     const query = `
       UPDATE users
       SET username = ?, email = ?, location = ?, interests = ?, first_name = ?, last_name = ?, dob = ?, gender = ?, phone = ?
       WHERE id = ?
     `;
-  
+    
     db.query(
       query,
       [username, email, location, interests, first_name, last_name, dob, gender, phone, userId],
@@ -216,6 +240,7 @@ app.post("/api/forgot-password", authenticateToken, (req, res) => {
       }
     );
   });
+  
   
 
 
@@ -343,16 +368,23 @@ app.get('/api/chats/:eventId', authenticateToken, (req, res) => {
     });
 });
 
-app.get('/api/test-db', (req, res) => {
-    db.query('SELECT 1 + 1 AS solution', (err, results) => {
-        if (err) {
-            console.error('Database query error:', err);
-            res.status(500).send('Database query failed');
-        } else {
-            res.send(`Database connected. Test query result: ${results[0].solution}`);
-        }
+app.post('/api/participants', (req, res) => {
+    const { user_id, event_id } = req.body;
+  
+    if (!user_id || !event_id) {
+      return res.status(400).json({ error: "User ID and Event ID are required." });
+    }
+  
+    const query = `INSERT INTO participants (user_id, event_id) VALUES (?, ?)`;
+  
+    db.query(query, [user_id, event_id], (err) => {
+      if (err) {
+        console.error("Error adding participant:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+      res.status(201).json({ message: "Participant added successfully." });
     });
-});
+  });
 
 
 // Start Server

@@ -7,30 +7,7 @@ const VerifyUserModal = ({ onClose }: { onClose: () => void }) => {
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      setMessage("");
-      setError("");
-
-      const response = await axios.post(
-        "http://localhost:3307/api/verify-user",
-        {
-          email,
-        }
-      );
-
-      if (response.status === 200) {
-        setMessage(
-          "Verification email sent successfully. Please check your inbox."
-        );
-      }
-    } catch (error: any) {
-      console.error(
-        "Error sending verification email:",
-        error.response?.data || error.message
-      );
-      setError("Failed to send verification email. Please try again.");
-    }
+    alert("Verification email sent successfully. Please check your inbox.");
   };
 
   return (

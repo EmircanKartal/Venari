@@ -112,7 +112,7 @@ const UserProfile = () => {
           className="bg-green-200 bg-opacity-30 hover:bg-opacity-50 text-green-800 font-bold py-4 px-4 rounded shadow-md transition w-1/3 mx-2"
           onClick={() => setShowForgotPasswordModal(true)}
         >
-          Forgot Password
+          Change Password
         </button>
         <button
           className="bg-green-200 bg-opacity-30 hover:bg-opacity-50 text-green-800 font-bold py-4 px-4 rounded shadow-md transition w-1/3 mx-2"

@@ -64,6 +64,7 @@ const Login = () => {
         setUser({
           id: response.data.user.id,
           username: response.data.user.username,
+          password: response.data.user.password,
           email: response.data.user.email,
           location: response.data.user.location,
           interests: response.data.user.interests,

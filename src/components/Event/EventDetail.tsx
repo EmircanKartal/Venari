@@ -7,6 +7,7 @@ import TrendingUpIcon from "@mui/icons-material/TrendingUp";
 import AccessAlarmsIcon from "@mui/icons-material/AccessAlarms";
 import ShareIcon from "@mui/icons-material/Share";
 import MapModal from "../Map/MapModal";
+import { useUser } from "../../context/UserContext";
 
 interface Event {
   id: number;
@@ -16,7 +17,7 @@ interface Event {
   time: string;
   duration: string;
   category: string;
-  location: string; // Coordinates as a string "lat,lng"
+  location: string;
   image?: string;
 }
 
@@ -25,6 +26,7 @@ const EventDetail = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [city, setCity] = useState<string>("");
+  const { user } = useUser();
 
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
 
@@ -34,6 +36,34 @@ const EventDetail = () => {
 
   const handleCloseMapModal = () => {
     setIsMapModalOpen(false);
+  };
+
+  const handleAttendEvent = async () => {
+    if (user) {
+      try {
+        if (!id) {
+          alert("Event ID is missing.");
+          return;
+        }
+        const response = await axios.post(
+          "http://localhost:3307/api/participants",
+          {
+            user_id: user.id,
+            event_id: parseInt(id), // Safely parse `id`
+          }
+        );
+        if (response.status === 201) {
+          alert("You have successfully registered for this event!");
+        } else {
+          alert("Failed to register for the event.");
+        }
+      } catch (error) {
+        console.error("Error attending the event:", error);
+        alert("An error occurred while trying to attend the event.");
+      }
+    } else {
+      alert("You need to be logged in to attend this event.");
+    }
   };
 
   const formatDateTime = (date: string, time: string, duration: string) => {
@@ -213,7 +243,7 @@ const EventDetail = () => {
           </button>
           <button
             className="flex-grow bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-800 hover:scale-105 transition ease-in-out duration-300"
-            onClick={() => alert("You are choosing to attend this event")}
+            onClick={handleAttendEvent}
           >
             Attend
           </button>

@@ -2,32 +2,29 @@ import React, { useState } from "react";
 import axios from "axios";
 import { useUser } from "../../context/UserContext";
 
-const ForgotPasswordModal = ({ onClose }: { onClose: () => void }) => {
+const ChangePasswordModal = ({ onClose }: { onClose: () => void }) => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [retypePassword, setRetypePassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [error, setError] = useState("");
+  const { user } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(useUser);
+
+    // Ensure the current password and retyped password match
     if (currentPassword !== retypePassword) {
       setError("Passwords do not match.");
       return;
     }
 
     try {
-      const token = localStorage.getItem("token"); // Ensure token is stored in localStorage
-      console.log("Sending token:", token); // Debug
-      console.log("Sending newPassword:", newPassword); // Debug
-
       const response = await axios.post(
-        "http://localhost:3307/api/forgot-password",
-        { newPassword },
+        "http://localhost:3307/api/change-password",
         {
-          headers: {
-            Authorization: `Bearer ${token}`, // Pass token in Authorization header
-          },
+          currentPassword,
+          newPassword,
+          userId: user?.id,
         }
       );
 
@@ -47,7 +44,7 @@ const ForgotPasswordModal = ({ onClose }: { onClose: () => void }) => {
   return (
     <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-      style={{ zIndex: 1000 }} // Ensures modal appears above everything
+      style={{ zIndex: 1000 }}
     >
       <div className="bg-white p-12 rounded-lg shadow-lg w-3/12">
         <h2 className="text-xl font-bold mb-4 text-green-800">
@@ -56,7 +53,10 @@ const ForgotPasswordModal = ({ onClose }: { onClose: () => void }) => {
         {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-green-800 font-bold mb-2">
+            <label
+              htmlFor="currentPassword"
+              className="block text-green-800 font-bold mb-2"
+            >
               Current Password
             </label>
             <input
@@ -68,7 +68,10 @@ const ForgotPasswordModal = ({ onClose }: { onClose: () => void }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-green-800 font-bold mb-2">
+            <label
+              htmlFor="retypePassword"
+              className="block text-green-800 font-bold mb-2"
+            >
               Re-type Current Password
             </label>
             <input
@@ -80,7 +83,10 @@ const ForgotPasswordModal = ({ onClose }: { onClose: () => void }) => {
             />
           </div>
           <div className="mb-4">
-            <label className="block text-green-800 font-bold mb-2">
+            <label
+              htmlFor="newPassword"
+              className="block text-green-800 font-bold mb-2"
+            >
               New Password
             </label>
             <input
@@ -112,4 +118,4 @@ const ForgotPasswordModal = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-export default ForgotPasswordModal;
+export default ChangePasswordModal;
