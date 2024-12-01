@@ -57,19 +57,15 @@ const EventDetail = () => {
           }
         );
 
-        if (response.status === 200) {
-          alert(response.data.message); // No conflict
+        if (response.data.conflict) {
+          alert("You can't attend two events at the same time.");
+        } else {
+          // No conflict, proceed to attend the event
           handleAttendEvent(eventId);
-        } else {
-          alert("An unexpected error occurred.");
         }
-      } catch (error: unknown) {
-        if (error instanceof AxiosError && error.response?.status === 401) {
-          alert("You are not authorized. Please log in again.");
-        } else {
-          alert("An error occurred while checking event conflict.");
-        }
+      } catch (error) {
         console.error("Error checking event conflict:", error);
+        alert("An error occurred while checking event conflict.");
       }
     };
 
@@ -80,21 +76,8 @@ const EventDetail = () => {
     id: number;
   }
   const handleAttendEvent = async (eventId: number): Promise<void> => {
-    // Get the token from localStorage
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      alert("You must be logged in to submit.");
-      return;
-    }
-    console.log("User ID from context:", user?.id); // Log the ID directly
-
-    const user: User | null = JSON.parse(
-      localStorage.getItem("user") || "null"
-    );
-
     if (!user || !user.id) {
-      alert("User is not logged in.");
+      alert("You must be logged in to attend this event.");
       return;
     }
 
@@ -103,23 +86,18 @@ const EventDetail = () => {
       const response = await axios.post(
         "http://localhost:3307/api/participants", // URL to the backend API
         {
-          userId: user.id, // User ID
-          eventId: eventId, // Event ID
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // Attach the token to the Authorization header
-          },
+          user_id: user.id, // User ID
+          event_id: eventId, // Event ID
         }
       );
 
       // Handle the response from adding the participant
-      if (response.status === 200) {
+      if (response.status === 201) {
         alert("You have been successfully added to the event.");
       } else {
         alert("An error occurred while adding you to the event.");
       }
-    } catch (error: unknown) {
+    } catch (error) {
       alert("An error occurred while submitting your participation.");
       console.error("Error adding participant:", error);
     }

@@ -290,7 +290,7 @@ app.post('/api/add-events', upload.single('image'), (req, res) => {
  *  events için tüm etkinlerine bilgisini getiren endpoint
  */
 app.get('/api/events', (req, res) => {
-    const { page = 1, limit = 12 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
 
     const query = `SELECT * FROM events LIMIT ? OFFSET ?`;
@@ -342,35 +342,98 @@ app.get('/api/events/:id', (req, res) => {
  * Endpoint to check if there's a conflict with the user's event schedule.
  */
 app.post('/api/check-event-conflict', (req, res) => {
-    const { user_id, event_date_time } = req.body;
-  
-    if (!user_id || !event_date_time) {
-      return res.status(400).json({ error: "User ID and event date/time are required" });
+  const { user_id, event_date_time } = req.body;
+
+  if (!user_id || !event_date_time) {
+    return res.status(400).json({ error: "User ID and event date/time are required" });
+  }
+
+  // SQL query to check if there are any other events for the user at the same date and time
+  const query = `
+    SELECT * FROM participants
+    JOIN events ON participants.event_id = events.id
+    WHERE participants.user_id = ? AND CONCAT(events.date, 'T', events.time) = ?
+  `;
+
+  db.query(query, [user_id, event_date_time], (err, results) => {
+    if (err) {
+      console.error("Error checking event conflict:", err);
+      return res.status(500).json({ error: "Database error" });
     }
-  
-    // SQL query to check if there are any other events for the user at the same date and time
-    const query = `
-      SELECT * FROM participants
-      JOIN events ON participants.event_id = events.id
-      WHERE participants.user_id = ? AND CONCAT(events.date, 'T', events.time) = ?
-    `;
-  
-    db.query(query, [user_id, event_date_time], (err, results) => {
-      if (err) {
-        console.error("Error checking event conflict:", err);
-        return res.status(500).json({ error: "Database error" });
-      }
-  
-      if (results.length > 0) {
-        // Conflict found
-        return res.json({ conflict: true });
-      } else {
-        // No conflict
-        return res.json({ conflict: false });
-      }
-    });
+
+    if (results.length > 0) {
+      // Conflict found
+      return res.json({ conflict: true });
+    } else {
+      // No conflict
+      return res.json({ conflict: false });
+    }
   });
-  
+});
+
+/**
+ * Endpoint to get all events the logged-in user is attending
+ */
+app.post('/api/user-events', (req, res) => {
+
+  const { user_id } = req.body;
+
+  if (!user_id) {
+    return res.status(401).json({ error: "User not logged in" });
+  }
+
+  const query = `
+    SELECT events.id, events.name, events.date, events.time, events.duration
+    FROM participants
+    JOIN events ON participants.event_id = events.id
+    WHERE participants.user_id = ?
+  `;
+
+  db.query(query, [user_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching user events:", err);
+      return res.status(500).json({ error: "Database error" });
+    }
+    res.status(200).json(results); // Return all events the user is attending
+  });
+});
+app.post('/api/delete-event', (req, res) => {
+  const { event_id, user_id } = req.body;
+
+  if (!event_id || !user_id) {
+    return res.status(400).json({ error: "Event ID and User ID are required" });
+  }
+
+  const query = `DELETE FROM participants WHERE event_id = ? AND user_id = ?`;
+
+  db.query(query, [event_id, user_id], (err, result) => {
+    if (err) {
+      console.error('Error deleting event:', err);
+      return res.status(500).json({ error: "Database error" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Event not found for this user" });
+    }
+
+    res.status(200).json({ message: "Event removed successfully" });
+  });
+});
+
+/**
+ * Brings the event name and id for search bar
+ */
+app.get('/api/events-names-for-search-bar', (req, res) => {
+  const query = `SELECT id, name FROM events`;
+
+  db.query(query, (err, results) => {
+      if (err) {
+          return res.status(500).json({ error: err.message });
+      }
+
+      res.json(results); // Send back all event names and ids
+  });
+});
 
 // Chat Message
 app.post('/api/chats', authenticateToken, (req, res) => {
@@ -400,22 +463,23 @@ app.get('/api/chats/:eventId', authenticateToken, (req, res) => {
 });
 
 app.post('/api/participants', (req, res) => {
-    const { user_id, event_id } = req.body;
-  
-    if (!user_id || !event_id) {
-      return res.status(400).json({ error: "User ID and Event ID are required." });
+  const { user_id, event_id } = req.body;
+
+  if (!user_id || !event_id) {
+    return res.status(400).json({ error: "User ID and Event ID are required." });
+  }
+
+  const query = `INSERT INTO participants (user_id, event_id) VALUES (?, ?)`;
+
+  db.query(query, [user_id, event_id], (err) => {
+    if (err) {
+      console.error("Error adding participant:", err);
+      return res.status(500).json({ error: "Database error" });
     }
-  
-    const query = `INSERT INTO participants (user_id, event_id) VALUES (?, ?)`;
-  
-    db.query(query, [user_id, event_id], (err) => {
-      if (err) {
-        console.error("Error adding participant:", err);
-        return res.status(500).json({ error: "Database error" });
-      }
-      res.status(201).json({ message: "Participant added successfully." });
-    });
+    res.status(201).json({ message: "Participant added successfully." });
   });
+});
+
 
 
 // Start Server

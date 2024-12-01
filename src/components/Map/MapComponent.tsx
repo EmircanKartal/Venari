@@ -115,11 +115,12 @@ const MapComponent = () => {
   }
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full" style={{ zIndex: 1 }}>
       <MapContainer
         center={[39.925533, 26.366287]}
         zoom={6}
         className="rounded-2xl shadow-md h-full w-full"
+        style={{ zIndex: 1 }} // Set zIndex here
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
