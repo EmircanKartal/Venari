@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { Triangle } from "react-loader-spinner";
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import TrendingUpIcon from "@mui/icons-material/TrendingUp";
@@ -37,32 +37,91 @@ const EventDetail = () => {
   const handleCloseMapModal = () => {
     setIsMapModalOpen(false);
   };
+  const handleCheckEventConflict = (
+    eventId: number,
+    eventDate: string,
+    eventTime: string
+  ): void => {
+    if (!user || !user.id) {
+      alert("You must be logged in to check for conflicts.");
+      return;
+    }
 
-  const handleAttendEvent = async () => {
-    if (user) {
+    const checkConflict = async () => {
       try {
-        if (!id) {
-          alert("Event ID is missing.");
-          return;
-        }
         const response = await axios.post(
-          "http://localhost:3307/api/participants",
+          "http://localhost:3307/api/check-event-conflict",
           {
-            user_id: user.id,
-            event_id: parseInt(id), // Safely parse `id`
+            user_id: user.id, // Use the user from context directly
+            event_date_time: `${eventDate}T${eventTime}`,
           }
         );
-        if (response.status === 201) {
-          alert("You have successfully registered for this event!");
+
+        if (response.status === 200) {
+          alert(response.data.message); // No conflict
+          handleAttendEvent(eventId);
         } else {
-          alert("Failed to register for the event.");
+          alert("An unexpected error occurred.");
         }
-      } catch (error) {
-        console.error("Error attending the event:", error);
-        alert("An error occurred while trying to attend the event.");
+      } catch (error: unknown) {
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          alert("You are not authorized. Please log in again.");
+        } else {
+          alert("An error occurred while checking event conflict.");
+        }
+        console.error("Error checking event conflict:", error);
       }
-    } else {
-      alert("You need to be logged in to attend this event.");
+    };
+
+    checkConflict();
+  };
+
+  interface User {
+    id: number;
+  }
+  const handleAttendEvent = async (eventId: number): Promise<void> => {
+    // Get the token from localStorage
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("You must be logged in to submit.");
+      return;
+    }
+    console.log("User ID from context:", user?.id); // Log the ID directly
+
+    const user: User | null = JSON.parse(
+      localStorage.getItem("user") || "null"
+    );
+
+    if (!user || !user.id) {
+      alert("User is not logged in.");
+      return;
+    }
+
+    try {
+      // Make the POST request to add the user to the participants table
+      const response = await axios.post(
+        "http://localhost:3307/api/participants", // URL to the backend API
+        {
+          userId: user.id, // User ID
+          eventId: eventId, // Event ID
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Attach the token to the Authorization header
+          },
+        }
+      );
+
+      // Handle the response from adding the participant
+      if (response.status === 200) {
+        alert("You have been successfully added to the event.");
+      } else {
+        alert("An error occurred while adding you to the event.");
+      }
+    } catch (error: unknown) {
+      alert("An error occurred while submitting your participation.");
+      console.error("Error adding participant:", error);
     }
   };
 
@@ -243,7 +302,9 @@ const EventDetail = () => {
           </button>
           <button
             className="flex-grow bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-800 hover:scale-105 transition ease-in-out duration-300"
-            onClick={handleAttendEvent}
+            onClick={() =>
+              handleCheckEventConflict(event.id, event.date, event.time)
+            }
           >
             Attend
           </button>

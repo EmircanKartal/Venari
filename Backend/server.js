@@ -338,8 +338,39 @@ app.get('/api/events/:id', (req, res) => {
         res.json(event);
     });
 });
-
-
+/**
+ * Endpoint to check if there's a conflict with the user's event schedule.
+ */
+app.post('/api/check-event-conflict', (req, res) => {
+    const { user_id, event_date_time } = req.body;
+  
+    if (!user_id || !event_date_time) {
+      return res.status(400).json({ error: "User ID and event date/time are required" });
+    }
+  
+    // SQL query to check if there are any other events for the user at the same date and time
+    const query = `
+      SELECT * FROM participants
+      JOIN events ON participants.event_id = events.id
+      WHERE participants.user_id = ? AND CONCAT(events.date, 'T', events.time) = ?
+    `;
+  
+    db.query(query, [user_id, event_date_time], (err, results) => {
+      if (err) {
+        console.error("Error checking event conflict:", err);
+        return res.status(500).json({ error: "Database error" });
+      }
+  
+      if (results.length > 0) {
+        // Conflict found
+        return res.json({ conflict: true });
+      } else {
+        // No conflict
+        return res.json({ conflict: false });
+      }
+    });
+  });
+  
 
 // Chat Message
 app.post('/api/chats', authenticateToken, (req, res) => {
