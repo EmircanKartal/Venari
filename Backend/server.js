@@ -435,32 +435,98 @@ app.get('/api/events-names-for-search-bar', (req, res) => {
   });
 });
 
-// Chat Message
-app.post('/api/chats', authenticateToken, (req, res) => {
-    const { eventId, message } = req.body;
+/**
+ *  This endpoint gets the event info for discussion forum 
+ */
+app.get("/api/event-info-for-discussion-forum", (req, res) => {
+  const query = "SELECT id, name, image FROM events"; // Select image, name, and id
 
-    const query = `INSERT INTO chats (event_id, user_id, message) VALUES (?, ?, ?)`;
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error("Error fetching events:", err);
+          return res.status(500).json({ error: "Failed to fetch events" });
+      }
 
-    db.query(query, [eventId, req.user.id, message], (err) => {
-        if (err) {
-            res.status(500).json({ error: err.message });
-        } else {
-            res.status(201).json({ message: 'Message sent successfully' });
-        }
-    });
+      // Convert image field from longblob to Base64 string
+      const formattedEvents = results.map(event => {
+          if (event.image) {
+              // Convert the image from binary data to a Base64-encoded string
+              event.image = `data:image/jpeg;base64,${event.image.toString('base64')}`;
+          }
+          return event;
+      });
+
+      res.json(formattedEvents); // Return the events with Base64 image strings
+  });
 });
 
-// Get Chat Messages
-app.get('/api/chats/:eventId', authenticateToken, (req, res) => {
-    const { eventId } = req.params;
 
-    const query = `SELECT * FROM chats WHERE event_id = ?`;
+app.post('/api/adding-forum-message', async (req, res) => {
+  const { user_id, event_id, content, username } = req.body; // Now including username
 
-    db.query(query, [eventId], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        res.json(results);
+  if (!user_id || !event_id || !content || !username) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+
+  try {
+    // Insert the forum message into the discussion_forum table
+    const insertQuery = `
+      INSERT INTO discussion_forum (user_id, event_id, content, username)
+      VALUES (?, ?, ?, ?)
+    `;
+    
+    const [result] = await db.promise().query(insertQuery, [
+      user_id,    // User ID
+      event_id,   // Event ID
+      content,    // Message content
+      username,   // Username
+    ]);
+
+    res.status(201).json({
+      message: 'Forum post added successfully',
+      post_id: result.insertId,  // Return the inserted post ID
     });
+  } catch (error) {
+    console.error('Error adding forum post:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
+
+
+// Endpoint to get old messages for a specific event
+app.get('/api/get-forum-messages', async (req, res) => {
+  const { event_id } = req.query; // Use req.query to access the event_id from URL
+
+  if (!event_id) {
+    return res.status(400).json({ error: 'Event ID is required' });
+  }
+
+  try {
+    // Query to fetch messages for the specific event
+    const selectQuery = `
+      SELECT user_id, username, content, timestamp
+      FROM discussion_forum
+      WHERE event_id = ?
+      ORDER BY timestamp ASC
+    `;
+    
+    const [messages] = await db.promise().query(selectQuery, [event_id]);
+
+    if (messages.length === 0) {
+      return res.status(404).json({ message: 'No messages found for this event.' });
+    }
+
+    res.status(200).json({ messages });
+  } catch (error) {
+    console.error('Error fetching forum messages:', error); // Log detailed error
+    res.status(500).json({ error: 'Internal server error', details: error.message });
+  }
+});
+
+
+
+
 
 app.post('/api/participants', (req, res) => {
   const { user_id, event_id } = req.body;
